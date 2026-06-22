@@ -54,6 +54,7 @@ main{max-width:1280px;margin:0 auto;padding:24px}
 input[type=range]{flex:1;-webkit-appearance:none;height:4px;border-radius:2px;background:#E8E9F0;outline:none;cursor:pointer}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:var(--purple);border:2px solid #fff;box-shadow:0 1px 3px rgba(124,111,247,.4)}
 .ni{width:62px;font-size:13px;padding:4px 7px;border:1px solid var(--border);border-radius:8px;background:#EEEDff;color:var(--purple);font-weight:600;text-align:center;outline:none;font-family:inherit}
+.wprice{width:104px;font-size:14px;font-weight:600;padding:6px 10px;border:1px solid var(--border);border-radius:8px;background:#fff;color:var(--text);text-align:right;outline:none;font-family:inherit}
 input[type=number]{font-size:13px;padding:6px 9px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);outline:none;font-family:inherit}
 .divider{border:none;border-top:1px solid var(--border);margin:13px 0}
 .stitle{font-size:11px;font-weight:600;color:var(--label);letter-spacing:.04em;text-transform:uppercase;margin-bottom:11px}
@@ -219,6 +220,16 @@ footer{text-align:center;padding:20px;font-size:12px;color:var(--label)}
         <input class="ni" type="number" id="renewY2Num" value="50" min="1" max="99">
         <span style="font-size:12px;color:var(--muted)">%</span>
       </div>
+      <hr class="divider">
+      <div class="stitle" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px">
+        <span>Renewal price</span>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;text-transform:none;letter-spacing:0;font-weight:600;color:var(--muted)"><input type="checkbox" id="priceInc" checked style="width:14px;height:14px;accent-color:var(--purple);cursor:pointer">apply</label>
+      </div>
+      <div id="priceIncBody">
+        <div class="crow"><span class="clbl">Annual renewal price</span><span style="font-size:13px;color:var(--muted)">$</span><input class="wprice" type="number" id="renPriceA" value="130" min="0" step="0.01"><span style="font-size:12px;color:var(--muted)">/yr</span></div>
+        <div class="crow"><span class="clbl">Monthly renewal price</span><span style="font-size:13px;color:var(--muted)">$</span><input class="wprice" type="number" id="renPriceM" value="20" min="0" step="0.01"><span style="font-size:12px;color:var(--muted)">/mo</span></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px" id="priceIncNote"></div>
+      </div>
       <div class="stitle" style="margin-top:15px">Annual cohort retention · 100 customers</div>
       <table class="rtab" id="retentionTable"></table>
       <div style="font-size:11px;color:var(--label);margin-top:6px">Year 2 uses the Year-1 rate; Year 3 onward uses Year 2+, applied to whoever is left.</div>
@@ -272,7 +283,7 @@ var ltvChart=null, presentChart=null;
 var activeScenario=1, modalMode='', editingId=null;
 
 var scenarios=[
-  {id:1,name:'Scenario 1',locked:true,params:{roas:0.5,newC:100,ry1:40,ry2:50,surv:[51,35,28,23,20,17,15,13,10],upsellPriceA:100,upsellPriceM:12,upsellPctA:10,upsellPctM:10}}
+  {id:1,name:'Scenario 1',locked:true,params:{roas:0.5,newC:100,ry1:40,ry2:50,surv:[51,35,28,23,20,17,15,13,10],upsellPriceA:100,upsellPriceM:12,upsellPctA:10,upsellPctM:10,priceOn:1,renA:130,renM:20}}
 ];
 
 function el(id){return document.getElementById(id);}
@@ -299,7 +310,10 @@ function getParams(){
     upsellPriceA:parseFloat(el('upsellPriceA').value)||0,
     upsellPriceM:parseFloat(el('upsellPriceM').value)||0,
     upsellPctA:parseFloat(el('upsellPctA').value)||0,
-    upsellPctM:parseFloat(el('upsellPctM').value)||0
+    upsellPctM:parseFloat(el('upsellPctM').value)||0,
+    priceOn:el('priceInc').checked?1:0,
+    renA:parseFloat(el('renPriceA').value)||0,
+    renM:parseFloat(el('renPriceM').value)||0
   };
 }
 
@@ -313,6 +327,10 @@ function setParams(p){
   el('upsellPriceM').value=p.upsellPriceM||0;
   el('upsellPctA').value=p.upsellPctA||0; el('upsellPctANum').value=p.upsellPctA||0;
   el('upsellPctM').value=p.upsellPctM||0; el('upsellPctMNum').value=p.upsellPctM||0;
+  el('priceInc').checked=!!p.priceOn;
+  el('renPriceA').value=(p.renA!=null?p.renA:PA);
+  el('renPriceM').value=(p.renM!=null?p.renM:PM);
+  applyPriceToggle();
   update();
 }
 
@@ -343,39 +361,46 @@ function calc(){
   var uMoM=prM*pcM;    // extra $/mo per monthly customer
   var uBlend=MIX_A*uMoA+MIX_M*uMoM;  // blended monthly upsell MRR
 
-  // Annual revenue recognized per renewal year (base + annual upsell)
-  var baseA=PA+uYr;
+  // Renewal price increase (two-tier pricing). Off => renewal price == acquisition price.
+  var priceOn=!!(el('priceInc') && el('priceInc').checked);
+  // Renewal base prices entered directly in $ (fall back to acquisition price if blank/0 or toggle off).
+  var PA_renew=priceOn?(parseFloat(el('renPriceA').value)||PA):PA;   // base annual price on renewal (year 2+)
+  var PM_renew=priceOn?(parseFloat(el('renPriceM').value)||PM):PM;   // base monthly price on renewal (month 2+)
 
-  // First-payment basis: cash collected on the first invoice
-  var fpA=baseA;      // annual customer pays a full year up front (base + annual upsell)
-  var fpM=PM+uMoM;    // monthly customer pays one month (base + monthly upsell)
-  var arppu=MIX_A*fpA+MIX_M*fpM;   // blended first-payment ARPPU
+  // Per-period revenue (base + upsell): acquisition vs renewal
+  var baseAacq=PA+uYr;        // annual, year 1
+  var baseAren=PA_renew+uYr;  // annual, year 2+
+  var fpMacq=PM+uMoM;         // monthly, month 1
+  var pMren=PM_renew+uMoM;    // monthly, month 2+
+
+  // First-payment basis: cash collected on the first invoice (acquisition prices)
+  var fpA=baseAacq;
+  var fpM=fpMacq;
+  var arppu=MIX_A*fpA+MIX_M*fpM;   // blended first-payment ARPPU (acquisition)
   var cac=arppu/roasT;             // blended CAC
   var cacM=fpM/roasT;              // monthly-plan CAC (used by the monthly cohort table)
   var spend=cac*newC;
 
-  // Monthly plan LTV
-  var ltvM13=0; for(var i=1;i<=13;i++) ltvM13+=(surv[i]/100)*(PM+uMoM);
-  var ltvM25=0; for(var i=1;i<=25;i++) ltvM25+=(surv[i]/100)*(PM+uMoM);
+  // Monthly plan LTV (mo1 at acquisition price, mo2+ at renewal price)
+  var ltvM13=0; for(var i=1;i<=13;i++) ltvM13+=(surv[i]/100)*(i===1?fpMacq:pMren);
+  var ltvM25=0; for(var i=1;i<=25;i++) ltvM25+=(surv[i]/100)*(i===1?fpMacq:pMren);
 
-  // Annual plan LTV (lump sums at start of each year)
-  // mo13: yr1 + yr2 renewal
-  // mo25: yr1 + yr2 + yr3 renewal
-  var ltvA13=baseA+baseA*ry1;
-  var ltvA25=baseA+baseA*ry1+baseA*ry1*ry2;
+  // Annual plan LTV (yr1 at acquisition price, yr2+ at renewal price)
+  var ltvA13=baseAacq+baseAren*ry1;
+  var ltvA25=baseAacq+baseAren*ry1+baseAren*ry1*ry2;
 
   var bLTV13=ltvM13*MIX_M+ltvA13*MIX_A;
   var bLTV25=ltvM25*MIX_M+ltvA25*MIX_A;
 
   // Payback: first month where blended cumulative cash collected >= CAC.
-  // Annual = full baseA from mo1, then a renewal added at each year boundary
-  // (mo13, 25, 37, 49) that compounds: ry1 into year 2, ry2 every year after.
+  // Monthly: mo1 at acquisition price, mo2+ at renewal price. Annual: full year-1 amount
+  // from mo1, then a renewal at each year boundary (mo13/25/37/49) compounding ry1 then ry2.
   var payback=null;
   var cumM=0;
   for(var j=1;j<=60;j++){
-    cumM+=(surv[j]/100)*(PM+uMoM);
-    var aStep=baseA, ret=1;
-    for(var yb=13;yb<=j;yb+=12){ ret*=(yb===13?ry1:ry2); aStep+=baseA*ret; }
+    cumM+=(surv[j]/100)*(j===1?fpMacq:pMren);
+    var aStep=baseAacq, ret=1;
+    for(var yb=13;yb<=j;yb+=12){ ret*=(yb===13?ry1:ry2); aStep+=baseAren*ret; }
     var blended=cumM*MIX_M+aStep*MIX_A;
     if(blended>=cac){payback=j;break;}
   }
@@ -386,7 +411,9 @@ function calc(){
     roasT:roasT, payback:payback,
     surv:surv, newC:newC, spend:spend,
     ry1:ry1, ry2:ry2,
-    uMoA:uMoA, uMoM:uMoM, uBlend:uBlend, uYr:uYr, baseA:baseA
+    uMoA:uMoA, uMoM:uMoM, uBlend:uBlend, uYr:uYr,
+    baseAacq:baseAacq, baseAren:baseAren, fpMacq:fpMacq, pMren:pMren,
+    priceOn:priceOn, PA_renew:PA_renew, PM_renew:PM_renew
   };
 }
 
@@ -414,10 +441,9 @@ function makeChartData(m,months){
   var cumM=0;
   for(var i=1;i<=months;i++){
     labels.push('Mo'+i);
-    cumM+=(m.surv[i]/100)*(PM+m.uMoM);
-    var a=m.baseA;
-    if(i>=13) a+=m.baseA*m.ry1;
-    if(i>=25) a+=m.baseA*m.ry1*m.ry2;
+    cumM+=(m.surv[i]/100)*(i===1?m.fpMacq:m.pMren);
+    var a=m.baseAacq, ret=1;
+    for(var yb=13;yb<=i;yb+=12){ ret*=(yb===13?m.ry1:m.ry2); a+=m.baseAren*ret; }
     var mW=parseFloat((cumM*MIX_M).toFixed(2));
     var aW=parseFloat((a*MIX_A).toFixed(2));
     mL.push(mW); aL.push(aW); bL.push(parseFloat((mW+aW).toFixed(2)));
@@ -469,11 +495,11 @@ function renderCohort(m){
   for(var i=1;i<=12;i++){var v=s[i];h+='<td style="background:rgba(124,111,247,'+(v/100*0.4).toFixed(2)+');font-weight:600">'+v.toFixed(1)+'%</td>';}
   h+='</tr><tr><td>Cumulative LTV (monthly)</td>';
   var cum=0;
-  for(var i=1;i<=12;i++){cum+=(s[i]/100)*(PM+m.uMoM);h+='<td>'+fmt(cum)+'</td>';}
+  for(var i=1;i<=12;i++){cum+=(s[i]/100)*(i===1?m.fpMacq:m.pMren);h+='<td>'+fmt(cum)+'</td>';}
   h+='</tr><tr><td>Implied churn</td>';
   for(var i=1;i<=12;i++){var ch=s[i-1]>0?(s[i-1]-s[i])/s[i-1]:0;h+='<td style="color:'+(ch>0.3?'#F06543':ch>0.12?'#E6A817':'#1DB87A')+';font-weight:600">'+(ch*100).toFixed(1)+'%</td>';}
   h+='</tr><tr><td>LTV vs monthly CAC</td>';
-  for(var i=1;i<=12;i++){var c2=0;for(var j=1;j<=i;j++)c2+=(s[j]/100)*(PM+m.uMoM);var pct=Math.min((c2/m.cacM)*100,100);h+='<td style="color:'+(pct>=100?'#1DB87A':pct>=60?'#E6A817':'#F06543')+';font-weight:600">'+pct.toFixed(0)+'%</td>';}
+  for(var i=1;i<=12;i++){var c2=0;for(var j=1;j<=i;j++)c2+=(s[j]/100)*(j===1?m.fpMacq:m.pMren);var pct=Math.min((c2/m.cacM)*100,100);h+='<td style="color:'+(pct>=100?'#1DB87A':pct>=60?'#E6A817':'#F06543')+';font-weight:600">'+pct.toFixed(0)+'%</td>';}
   h+='</tr></tbody>';
   el('cohortTable').innerHTML=h;
 }
@@ -492,6 +518,18 @@ function renderRetention(m){
     h+='<tr><td class="yr">Year '+y+'</td><td>'+applied+'</td><td class="users">'+ut+'</td></tr>';
   }
   el('retentionTable').innerHTML=h;
+}
+
+function renderPricing(m){
+  var n=el('priceIncNote'); if(!n) return;
+  if(!m.priceOn){ n.innerHTML='Off — renewals are priced the same as acquisition ($'+PA+'/yr, $'+PM+'/mo).'; return; }
+  n.innerHTML='Annual: $'+PA+' &rarr; <strong>$'+m.PA_renew.toFixed(2)+'</strong>/yr from year 2. Monthly: $'+PM+' &rarr; <strong>$'+m.PM_renew.toFixed(2)+'</strong>/mo from month 2.';
+}
+
+function applyPriceToggle(){
+  var on=el('priceInc').checked, b=el('priceIncBody');
+  b.style.opacity=on?'1':'.45';
+  b.style.pointerEvents=on?'auto':'none';
 }
 
 function renderChart(m){
@@ -514,12 +552,14 @@ function renderPresentation(m){
     '<div class="ppbox"><div class="pptitle">Plan mix</div>'+
       '<div class="pprow"><span class="ppk">Annual</span><span class="ppv" style="color:var(--purple)">80%</span></div>'+
       '<div class="pprow"><span class="ppk">Monthly</span><span class="ppv" style="color:var(--coral)">20%</span></div>'+
-      '<div class="pprow"><span class="ppk">Annual price</span><span class="ppv">$113/yr</span></div>'+
-      '<div class="pprow"><span class="ppk">Monthly price</span><span class="ppv">$17.95/mo</span></div>'+
+      '<div class="pprow"><span class="ppk">Annual price (acq)</span><span class="ppv">$113/yr</span></div>'+
+      '<div class="pprow"><span class="ppk">Monthly price (acq)</span><span class="ppv">$17.95/mo</span></div>'+
     '</div>'+
-    '<div class="ppbox"><div class="pptitle">Renewals</div>'+
+    '<div class="ppbox"><div class="pptitle">Renewals &amp; pricing</div>'+
       '<div class="pprow"><span class="ppk">Year 1 renewal</span><span class="ppv">'+Math.round(m.ry1*100)+'%</span></div>'+
       '<div class="pprow"><span class="ppk">Year 2+ renewal</span><span class="ppv">'+Math.round(m.ry2*100)+'%</span></div>'+
+      '<div class="pprow"><span class="ppk">Annual renewal price</span><span class="ppv">'+(m.priceOn?'$'+m.PA_renew.toFixed(2)+'/yr':'$113/yr (no change)')+'</span></div>'+
+      '<div class="pprow"><span class="ppk">Monthly renewal price</span><span class="ppv">'+(m.priceOn?'$'+m.PM_renew.toFixed(2)+'/mo':'$17.95/mo (no change)')+'</span></div>'+
     '</div>'+
     '<div class="ppbox"><div class="pptitle">Upsell</div>'+
       '<div class="pprow"><span class="ppk">Annual upsell</span><span class="ppv">$'+(p.upsellPriceA||0)+'/yr</span></div>'+
@@ -537,7 +577,7 @@ function renderPresentation(m){
 
 function update(){
   var m=calc();
-  renderKPIs(m); renderARPPU(m); renderCohort(m); renderChart(m); renderRetention(m);
+  renderKPIs(m); renderARPPU(m); renderCohort(m); renderChart(m); renderRetention(m); renderPricing(m);
 }
 
 function renderScenarioButtons(){
@@ -620,6 +660,9 @@ syncPair('renewY1','renewY1Num');
 syncPair('renewY2','renewY2Num');
 syncPair('upsellPctA','upsellPctANum');
 syncPair('upsellPctM','upsellPctMNum');
+el('renPriceA').addEventListener('input',update);
+el('renPriceM').addEventListener('input',update);
+el('priceInc').addEventListener('change',function(){applyPriceToggle();update();});
 for(var i=1;i<=9;i++){(function(idx){el('s'+idx).addEventListener('input',update);})(i);}
 </script>
 </body>
