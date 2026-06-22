@@ -82,6 +82,13 @@ thead th:first-child{text-align:left;width:175px}
 tbody td{padding:8px 11px;text-align:center;border-bottom:1px solid var(--border);font-size:12px}
 tbody td:first-child{text-align:left;font-weight:600;color:var(--muted);font-size:11px;white-space:nowrap}
 tbody tr:last-child td{border-bottom:none}
+.rtab{width:100%;border-collapse:collapse;font-size:12px;margin-top:6px}
+.rtab th{background:#F0F1F8;color:var(--muted);font-weight:600;padding:6px 8px;text-align:center;font-size:10px;letter-spacing:.03em;text-transform:uppercase;border-bottom:1px solid var(--border);white-space:nowrap}
+.rtab th:first-child,.rtab td:first-child{text-align:left;width:auto}
+.rtab td{padding:7px 8px;text-align:center;border-bottom:1px solid var(--border);font-size:12px;color:var(--muted)}
+.rtab tr:last-child td{border-bottom:none}
+.rtab .yr{font-weight:600;color:var(--text)}
+.rtab .users{font-weight:700;color:var(--text);font-size:13px}
 .chcard{background:#fff;border-radius:var(--radius);border:1px solid var(--border);padding:20px 22px;margin-bottom:20px}
 .chhdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
 .legend{display:flex;gap:14px;flex-wrap:wrap}
@@ -199,6 +206,7 @@ footer{text-align:center;padding:20px;font-size:12px;color:var(--label)}
       <div style="font-size:11px;color:var(--label);margin-top:5px;margin-bottom:13px">Month 9+ stays at month 9 value</div>
       <hr class="divider">
       <div class="stitle">Annual renewal rates</div>
+      <div style="font-size:11px;color:var(--muted);margin:-4px 0 11px;line-height:1.55"><strong>Year 1</strong>: % of new customers who renew into year 2. <strong>Year 2+</strong>: % of the <em>prior year's survivors</em> who renew, applied every year after — it compounds.</div>
       <div class="crow">
         <span class="clbl">Year 1 renewal</span>
         <input type="range" min="1" max="99" step="1" id="renewY1" value="40">
@@ -207,10 +215,13 @@ footer{text-align:center;padding:20px;font-size:12px;color:var(--label)}
       </div>
       <div class="crow">
         <span class="clbl">Year 2+ renewal</span>
-        <input type="range" min="1" max="99" step="1" id="renewY2" value="20">
-        <input class="ni" type="number" id="renewY2Num" value="20" min="1" max="99">
+        <input type="range" min="1" max="99" step="1" id="renewY2" value="50">
+        <input class="ni" type="number" id="renewY2Num" value="50" min="1" max="99">
         <span style="font-size:12px;color:var(--muted)">%</span>
       </div>
+      <div class="stitle" style="margin-top:15px">Annual cohort retention · 100 customers</div>
+      <table class="rtab" id="retentionTable"></table>
+      <div style="font-size:11px;color:var(--label);margin-top:6px">Year 2 uses the Year-1 rate; Year 3 onward uses Year 2+, applied to whoever is left.</div>
     </div>
   </div>
   <div class="stitle" style="margin:0 0 8px 2px">Monthly-plan cohort · LTV rows are cumulative revenue per monthly customer</div>
@@ -261,7 +272,7 @@ var ltvChart=null, presentChart=null;
 var activeScenario=1, modalMode='', editingId=null;
 
 var scenarios=[
-  {id:1,name:'Scenario 1',locked:true,params:{roas:0.5,newC:100,ry1:40,ry2:20,surv:[51,35,28,23,20,17,15,13,10],upsellPriceA:100,upsellPriceM:12,upsellPctA:10,upsellPctM:10}}
+  {id:1,name:'Scenario 1',locked:true,params:{roas:0.5,newC:100,ry1:40,ry2:50,surv:[51,35,28,23,20,17,15,13,10],upsellPriceA:100,upsellPriceM:12,upsellPctA:10,upsellPctM:10}}
 ];
 
 function el(id){return document.getElementById(id);}
@@ -283,7 +294,7 @@ function getParams(){
     roas:parseFloat(el('roasTarget').value)||0.5,
     newC:parseInt(el('newCustomers').value)||100,
     ry1:parseFloat(el('renewY1').value)||40,
-    ry2:parseFloat(el('renewY2').value)||20,
+    ry2:parseFloat(el('renewY2').value)||50,
     surv:surv,
     upsellPriceA:parseFloat(el('upsellPriceA').value)||0,
     upsellPriceM:parseFloat(el('upsellPriceM').value)||0,
@@ -356,16 +367,15 @@ function calc(){
   var bLTV13=ltvM13*MIX_M+ltvA13*MIX_A;
   var bLTV25=ltvM25*MIX_M+ltvA25*MIX_A;
 
-  // Payback: first month where blended cumulative cash collected >= CAC
-  // Annual = full baseA from mo1, steps up at mo13, mo25, mo37
+  // Payback: first month where blended cumulative cash collected >= CAC.
+  // Annual = full baseA from mo1, then a renewal added at each year boundary
+  // (mo13, 25, 37, 49) that compounds: ry1 into year 2, ry2 every year after.
   var payback=null;
   var cumM=0;
   for(var j=1;j<=60;j++){
     cumM+=(surv[j]/100)*(PM+uMoM);
-    var aStep=baseA;
-    if(j>=13) aStep+=baseA*ry1;
-    if(j>=25) aStep+=baseA*ry1*ry2;
-    if(j>=37) aStep+=baseA*ry1*ry2*ry2;
+    var aStep=baseA, ret=1;
+    for(var yb=13;yb<=j;yb+=12){ ret*=(yb===13?ry1:ry2); aStep+=baseA*ret; }
     var blended=cumM*MIX_M+aStep*MIX_A;
     if(blended>=cac){payback=j;break;}
   }
@@ -468,6 +478,22 @@ function renderCohort(m){
   el('cohortTable').innerHTML=h;
 }
 
+function renderRetention(m){
+  // How a 100-customer annual cohort shrinks: yr2 uses ry1, yr3+ uses ry2 (compounds).
+  var h='<tr><th>Year</th><th>Renewal applied</th><th>Users left (of 100)</th></tr>';
+  var ret=1;
+  for(var y=1;y<=5;y++){
+    var applied;
+    if(y===1){applied='—';}
+    else if(y===2){ret*=m.ry1;applied='Y1 '+Math.round(m.ry1*100)+'%';}
+    else{ret*=m.ry2;applied='Y2+ '+Math.round(m.ry2*100)+'%';}
+    var u=100*ret;
+    var ut=(Math.abs(u-Math.round(u))<1e-9)?u.toFixed(0):u.toFixed(1);
+    h+='<tr><td class="yr">Year '+y+'</td><td>'+applied+'</td><td class="users">'+ut+'</td></tr>';
+  }
+  el('retentionTable').innerHTML=h;
+}
+
 function renderChart(m){
   if(ltvChart) ltvChart.destroy();
   ltvChart=new Chart(el('ltvChart'),{type:'line',data:makeChartData(m,30),options:chartOpts});
@@ -511,7 +537,7 @@ function renderPresentation(m){
 
 function update(){
   var m=calc();
-  renderKPIs(m); renderARPPU(m); renderCohort(m); renderChart(m);
+  renderKPIs(m); renderARPPU(m); renderCohort(m); renderChart(m); renderRetention(m);
 }
 
 function renderScenarioButtons(){
@@ -520,7 +546,7 @@ function renderScenarioButtons(){
     (function(sc){
       var btn=document.createElement('button');
       btn.className='scbtn'+(activeScenario===sc.id?' active':'');
-      var sub=sc.locked?' <span style="font-size:10px;opacity:.7">ROAS '+sc.params.roas+'x &middot; Y1 '+sc.params.ry1+'%</span>':'';
+      var sub=sc.locked?' <span style="font-size:10px;opacity:.7">ROAS '+sc.params.roas+'x &middot; Y1 '+sc.params.ry1+'% &middot; Y2+ '+sc.params.ry2+'%</span>':'';
       var edit=!sc.locked?'<span style="margin-left:4px;font-size:11px;opacity:.7" data-rename="1">&#9998;</span>':'';
       btn.innerHTML=sc.name+sub+edit;
       if(!sc.locked){
