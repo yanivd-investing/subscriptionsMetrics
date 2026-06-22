@@ -3,18 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SaaS Metrics Dashboard</title>
+<title>InvestingPro · SaaS Metrics Dashboard</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
-:root{--purple:#7C6FF7;--green:#1DB87A;--coral:#F06543;--amber:#E6A817;--bg:#F6F7FB;--card:#fff;--border:#E8E9F0;--text:#1A1B2E;--muted:#7B7D8E;--label:#A0A2B0;--radius:16px;--rsm:10px}
+:root{--orange:#FF6800;--orange2:#FF964A;--ink:#1A1A1A;--ink2:#262626;--green:#1DB87A;--red:#E5484D;--amber:#E6A817;--grey:#6A6A6B;--bg:#F5F5F6;--card:#fff;--border:#E4E4E8;--text:#1A1A1A;--muted:#6A6A6B;--label:#9A9A9A;--radius:16px;--rsm:10px}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text)}
-header{background:linear-gradient(135deg,#1A1B2E,#2D2B55);padding:20px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
-.brand{display:flex;align-items:center;gap:12px}
-.logo{width:36px;height:36px;border-radius:10px;background:var(--purple);display:flex;align-items:center;justify-content:center}
-.logo svg{width:20px;height:20px;fill:#fff}
-.brand h1{font-size:17px;font-weight:600;color:#fff}
-.brand p{font-size:12px;color:rgba(255,255,255,.4);margin-top:1px}
+header{background:linear-gradient(135deg,#1A1A1A,#262626);padding:20px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.brand{display:flex;align-items:center;gap:13px}
+.logo{width:34px;height:34px;border-radius:9px;background:var(--orange);display:flex;align-items:center;justify-content:center}
+.logo svg{width:19px;height:19px;fill:#fff}
+.wordmark{font-size:20px;font-weight:800;letter-spacing:-.02em;color:#fff;white-space:nowrap}
+.wordmark .pro{color:var(--orange)}
+.bsep{width:1px;height:30px;background:rgba(255,255,255,.16)}
+.bsub h1{font-size:13px;font-weight:600;color:rgba(255,255,255,.92);line-height:1.2}
+.bsub p{font-size:11px;color:rgba(255,255,255,.42);margin-top:2px}
 .hright{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .pill{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:5px 12px;display:flex;align-items:center;gap:7px}
 .pill .pt{font-size:10px;font-weight:600;color:rgba(255,255,255,.4);letter-spacing:.05em;text-transform:uppercase}
@@ -22,43 +25,43 @@ header{background:linear-gradient(135deg,#1A1B2E,#2D2B55);padding:20px 32px;disp
 .pill .pp{font-size:10px;color:rgba(255,255,255,.35)}
 .vpills{display:flex;border-radius:20px;overflow:hidden;border:1.5px solid rgba(255,255,255,.25)}
 .vbtn{padding:7px 18px;border:none;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
-.vbtn.on{background:#fff;color:#1A1B2E}
+.vbtn.on{background:#fff;color:#1A1A1A}
 .vbtn.off{background:transparent;color:rgba(255,255,255,.7)}
 .scbar{background:#fff;border-bottom:1px solid var(--border);padding:10px 32px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .sclabel{font-size:11px;font-weight:600;color:var(--label);letter-spacing:.05em;text-transform:uppercase}
 .scbtn{padding:5px 14px;border-radius:20px;border:1.5px solid var(--border);background:#fff;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer}
-.scbtn.active{background:var(--purple);border-color:var(--purple);color:#fff}
+.scbtn.active{background:var(--orange);border-color:var(--orange);color:#fff}
 .modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:999;opacity:0;pointer-events:none;transition:opacity .2s}
 .modal-ov.open{opacity:1;pointer-events:all}
 .modal{background:#fff;border-radius:var(--radius);padding:28px;width:320px}
 .modal h3{font-size:15px;font-weight:600;margin-bottom:6px}
 .modal p{font-size:12px;color:var(--muted);margin-bottom:14px}
 .modal input[type=text]{width:100%;font-size:14px;padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;outline:none;font-family:inherit}
-.modal input[type=text]:focus{border-color:var(--purple)}
+.modal input[type=text]:focus{border-color:var(--orange)}
 .mbtns{display:flex;gap:8px;margin-top:14px}
 .mbtns button{flex:1;padding:9px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--muted)}
-.mbtns button.primary{background:var(--purple);color:#fff;border-color:var(--purple)}
+.mbtns button.primary{background:var(--orange);color:#fff;border-color:var(--orange)}
 main{max-width:1280px;margin:0 auto;padding:24px}
 .kgrid{display:grid;grid-template-columns:repeat(10,1fr);gap:8px;margin-bottom:24px}
 .kc{background:#fff;border-radius:var(--rsm);border:1px solid var(--border);padding:13px 14px;position:relative;overflow:hidden}
-.kc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--acc,var(--purple))}
+.kc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--acc,var(--orange))}
 .kl{font-size:10px;color:var(--label);font-weight:600;letter-spacing:.03em;text-transform:uppercase;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .kv{font-size:18px;font-weight:700;color:var(--text);line-height:1;white-space:nowrap}
 .ks{font-size:10px;color:var(--muted);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
 .card{background:#fff;border-radius:var(--radius);border:1px solid var(--border);padding:20px 22px}
 .ctitle{font-size:13px;font-weight:600;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:8px}
-.cdot{width:8px;height:8px;border-radius:50%;background:var(--purple);flex-shrink:0}
+.cdot{width:8px;height:8px;border-radius:50%;background:var(--orange);flex-shrink:0}
 .crow{display:flex;align-items:center;gap:10px;margin-bottom:11px}
 .clbl{font-size:12px;color:var(--muted);min-width:148px}
-input[type=range]{flex:1;-webkit-appearance:none;height:4px;border-radius:2px;background:#E8E9F0;outline:none;cursor:pointer}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:var(--purple);border:2px solid #fff;box-shadow:0 1px 3px rgba(124,111,247,.4)}
-.ni{width:62px;font-size:13px;padding:4px 7px;border:1px solid var(--border);border-radius:8px;background:#EEEDff;color:var(--purple);font-weight:600;text-align:center;outline:none;font-family:inherit}
+input[type=range]{flex:1;-webkit-appearance:none;height:4px;border-radius:2px;background:#E4E4E8;outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:var(--orange);border:2px solid #fff;box-shadow:0 1px 3px rgba(255,104,0,.4)}
+.ni{width:62px;font-size:13px;padding:4px 7px;border:1px solid var(--border);border-radius:8px;background:#FFF1E8;color:var(--orange);font-weight:600;text-align:center;outline:none;font-family:inherit}
 .wprice{width:104px;font-size:14px;font-weight:600;padding:6px 10px;border:1px solid var(--border);border-radius:8px;background:#fff;color:var(--text);text-align:right;outline:none;font-family:inherit}
 input[type=number]{font-size:13px;padding:6px 9px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);outline:none;font-family:inherit}
 .divider{border:none;border-top:1px solid var(--border);margin:13px 0}
 .stitle{font-size:11px;font-weight:600;color:var(--label);letter-spacing:.04em;text-transform:uppercase;margin-bottom:11px}
-.arbox{background:linear-gradient(135deg,#1A1B2E,#2D2B55);border-radius:12px;padding:13px 15px;margin-bottom:13px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.arbox{background:linear-gradient(135deg,#1A1A1A,#262626);border-radius:12px;padding:13px 15px;margin-bottom:13px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
 .arlbl{font-size:11px;color:rgba(255,255,255,.45);letter-spacing:.04em;text-transform:uppercase;margin-bottom:3px}
 .arval{font-size:24px;font-weight:700;color:#fff}
 .aparts{display:flex;gap:12px}
@@ -70,21 +73,21 @@ input[type=number]{font-size:13px;padding:6px 9px;border:1px solid var(--border)
 .sc label{font-size:10px;color:var(--label);display:block;margin-bottom:3px}
 .sc input{width:100%;font-size:12px;font-weight:600;padding:5px 3px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);text-align:center;outline:none;font-family:inherit}
 .ugrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px}
-.ubox{background:#F0F1F8;border-radius:10px;padding:11px}
+.ubox{background:#F2F2F5;border-radius:10px;padding:11px}
 .ublbl{font-size:10px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;font-weight:600}
 .upr{display:flex;align-items:center;gap:5px;margin-bottom:9px}
 .upr input{width:65px;font-size:14px;font-weight:600;padding:4px 7px;border:1px solid var(--border);border-radius:8px;background:#fff;color:var(--text);outline:none;font-family:inherit}
 .upct{display:flex;align-items:center;gap:5px}
-.upct input[type=range]{flex:1;background:#D0D0E0}
+.upct input[type=range]{flex:1;background:#D5D5DA}
 .twrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border);margin-bottom:20px}
 table{width:100%;border-collapse:collapse;font-size:12px}
-thead th{background:#F0F1F8;color:var(--muted);font-weight:600;padding:9px 11px;text-align:center;border-bottom:1px solid var(--border);white-space:nowrap;font-size:11px}
+thead th{background:#F2F2F5;color:var(--muted);font-weight:600;padding:9px 11px;text-align:center;border-bottom:1px solid var(--border);white-space:nowrap;font-size:11px}
 thead th:first-child{text-align:left;width:175px}
 tbody td{padding:8px 11px;text-align:center;border-bottom:1px solid var(--border);font-size:12px}
 tbody td:first-child{text-align:left;font-weight:600;color:var(--muted);font-size:11px;white-space:nowrap}
 tbody tr:last-child td{border-bottom:none}
 .rtab{width:100%;border-collapse:collapse;font-size:12px;margin-top:6px}
-.rtab th{background:#F0F1F8;color:var(--muted);font-weight:600;padding:6px 8px;text-align:center;font-size:10px;letter-spacing:.03em;text-transform:uppercase;border-bottom:1px solid var(--border);white-space:nowrap}
+.rtab th{background:#F2F2F5;color:var(--muted);font-weight:600;padding:6px 8px;text-align:center;font-size:10px;letter-spacing:.03em;text-transform:uppercase;border-bottom:1px solid var(--border);white-space:nowrap}
 .rtab th:first-child,.rtab td:first-child{text-align:left;width:auto}
 .rtab td{padding:7px 8px;text-align:center;border-bottom:1px solid var(--border);font-size:12px;color:var(--muted)}
 .rtab tr:last-child td{border-bottom:none}
@@ -110,7 +113,7 @@ footer{text-align:center;padding:20px;font-size:12px;color:var(--label)}
 .ppv{font-size:12px;font-weight:600;color:var(--text)}
 .pkgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:28px}
 .pkc{background:#fff;border-radius:12px;border:1px solid var(--border);padding:15px;position:relative;overflow:hidden}
-.pkc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--acc,var(--purple))}
+.pkc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--acc,var(--orange))}
 .pchcard{background:#fff;border-radius:12px;border:1px solid var(--border);padding:20px 22px}
 @media(max-width:1100px){.kgrid{grid-template-columns:repeat(5,1fr)}}
 @media(max-width:700px){.kgrid{grid-template-columns:repeat(3,1fr)}.two-col{grid-template-columns:1fr}header{padding:16px 20px}main{padding:16px}.sgrid{grid-template-columns:repeat(5,1fr)}.pparams{grid-template-columns:repeat(2,1fr)}.pkgrid{grid-template-columns:repeat(2,1fr)}}
@@ -119,13 +122,15 @@ footer{text-align:center;padding:20px;font-size:12px;color:var(--label)}
 <body>
 <header>
   <div class="brand">
-    <div class="logo"><svg viewBox="0 0 24 24"><path d="M3 3h7v7H3zm11 0h7v7h-7zM3 14h7v7H3zm14 3a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/></svg></div>
-    <div><h1>SaaS Metrics Dashboard</h1><p>Subscription analytics · Monthly and Annual plans</p></div>
+    <div class="logo"><svg viewBox="0 0 24 24"><path d="M4 13h3v7H4zm6.5-5h3v12h-3zM17 4h3v16h-3z"/></svg></div>
+    <span class="wordmark">Investing<span class="pro">Pro</span></span>
+    <div class="bsep"></div>
+    <div class="bsub"><h1>SaaS Metrics Dashboard</h1><p>Subscription unit economics · Monthly &amp; Annual</p></div>
   </div>
   <div class="hright">
     <div class="pill"><span class="pt">Monthly</span><span class="pv">$17.95</span><span class="pp">/ mo</span></div>
     <div class="pill"><span class="pt">Annual</span><span class="pv">$113</span><span class="pp">/ yr</span></div>
-    <div class="pill" style="background:rgba(124,111,247,.2);border-color:rgba(124,111,247,.4)"><span class="pt" style="color:rgba(255,255,255,.6)">ARPPU</span><span class="pv" id="headerARPPU">-</span></div>
+    <div class="pill" style="background:rgba(255,104,0,.2);border-color:rgba(255,104,0,.4)"><span class="pt" style="color:rgba(255,255,255,.6)">ARPPU</span><span class="pv" id="headerARPPU">-</span></div>
     <div class="vpills">
       <button class="vbtn on" id="btnDash">Dashboard</button>
       <button class="vbtn off" id="btnPresent">Presentation</button>
@@ -179,8 +184,8 @@ footer{text-align:center;padding:20px;font-size:12px;color:var(--label)}
       <hr class="divider">
       <div class="stitle">Plan mix (fixed)</div>
       <div style="display:flex;gap:10px;margin-bottom:14px">
-        <div style="flex:1;background:#F0F1F8;border-radius:10px;padding:11px;text-align:center"><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Annual</div><div style="font-size:20px;font-weight:700;color:var(--purple)">80%</div></div>
-        <div style="flex:1;background:#F0F1F8;border-radius:10px;padding:11px;text-align:center"><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Monthly</div><div style="font-size:20px;font-weight:700;color:var(--coral)">20%</div></div>
+        <div style="flex:1;background:#F2F2F5;border-radius:10px;padding:11px;text-align:center"><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Annual</div><div style="font-size:20px;font-weight:700;color:var(--orange)">80%</div></div>
+        <div style="flex:1;background:#F2F2F5;border-radius:10px;padding:11px;text-align:center"><div style="font-size:11px;color:var(--muted);margin-bottom:3px">Monthly</div><div style="font-size:20px;font-weight:700;color:var(--grey)">20%</div></div>
       </div>
       <hr class="divider">
       <div class="stitle">Upsell at acquisition</div>
@@ -201,7 +206,7 @@ footer{text-align:center;padding:20px;font-size:12px;color:var(--label)}
       <div style="font-size:11px;color:var(--muted);margin-top:4px" id="upsellImpact"></div>
     </div>
     <div class="card">
-      <div class="ctitle"><div class="cdot" style="background:var(--coral)"></div>Churn and renewals</div>
+      <div class="ctitle"><div class="cdot" style="background:var(--red)"></div>Churn and renewals</div>
       <div class="stitle">Monthly plan survival % by month</div>
       <div class="sgrid" id="survGrid"></div>
       <div style="font-size:11px;color:var(--label);margin-top:5px;margin-bottom:13px">Month 9+ stays at month 9 value</div>
@@ -223,11 +228,11 @@ footer{text-align:center;padding:20px;font-size:12px;color:var(--label)}
       <hr class="divider">
       <div class="stitle" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px">
         <span>Renewal price</span>
-        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;text-transform:none;letter-spacing:0;font-weight:600;color:var(--muted)"><input type="checkbox" id="priceInc" checked style="width:14px;height:14px;accent-color:var(--purple);cursor:pointer">apply</label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;text-transform:none;letter-spacing:0;font-weight:600;color:var(--muted)"><input type="checkbox" id="priceInc" checked style="width:14px;height:14px;accent-color:var(--orange);cursor:pointer">apply</label>
       </div>
       <div id="priceIncBody">
-        <div class="crow"><span class="clbl">Annual renewal price</span><span style="font-size:13px;color:var(--muted)">$</span><input class="wprice" type="number" id="renPriceA" value="130" min="0" step="0.01"><span style="font-size:12px;color:var(--muted)">/yr</span></div>
-        <div class="crow"><span class="clbl">Monthly renewal price</span><span style="font-size:13px;color:var(--muted)">$</span><input class="wprice" type="number" id="renPriceM" value="20" min="0" step="0.01"><span style="font-size:12px;color:var(--muted)">/mo</span></div>
+        <div class="crow"><span class="clbl">Annual renewal price</span><span style="font-size:13px;color:var(--muted)">$</span><input class="wprice" type="number" id="renPriceA" value="226" min="0" step="0.01"><span style="font-size:12px;color:var(--muted)">/yr</span></div>
+        <div class="crow"><span class="clbl">Monthly renewal price</span><span style="font-size:13px;color:var(--muted)">$</span><input class="wprice" type="number" id="renPriceM" value="36" min="0" step="0.01"><span style="font-size:12px;color:var(--muted)">/mo</span></div>
         <div style="font-size:11px;color:var(--muted);margin-top:2px" id="priceIncNote"></div>
       </div>
       <div class="stitle" style="margin-top:15px">Annual cohort retention · 100 customers</div>
@@ -241,17 +246,17 @@ footer{text-align:center;padding:20px;font-size:12px;color:var(--label)}
     <div class="chhdr">
       <div class="ctitle" style="margin-bottom:0"><div class="cdot"></div>Cumulative cash collected — 30 months</div>
       <div class="legend">
-        <div class="li"><div class="ll" style="background:#2D2B55;height:4px"></div>Blended</div>
-        <div class="li"><div class="ld" style="border-color:#7C6FF7"></div>Monthly</div>
-        <div class="li"><div class="ld" style="border-color:#1DB87A"></div>Annual</div>
-        <div class="li"><div class="ld" style="border-color:#F06543"></div>CAC</div>
+        <div class="li"><div class="ll" style="background:#FF6800;height:4px"></div>Blended</div>
+        <div class="li"><div class="ld" style="border-color:#9A9A9A"></div>Monthly</div>
+        <div class="li"><div class="ld" style="border-color:#404040"></div>Annual</div>
+        <div class="li"><div class="ld" style="border-color:#E5484D"></div>CAC</div>
         <div class="li"><div class="ld" style="border-color:#E6A817"></div>ARPPU</div>
       </div>
     </div>
     <div style="position:relative;width:100%;height:280px"><canvas id="ltvChart"></canvas></div>
   </div>
 </main>
-<footer>Prices fixed: $17.95/mo and $113/yr · CAC = ARPPU / ROAS (first-payment basis).</footer>
+<footer>InvestingPro · Prices fixed: $17.95/mo and $113/yr · CAC = ARPPU / ROAS (first-payment basis).</footer>
 </div>
 
 <div id="presentView" style="display:none">
@@ -264,10 +269,10 @@ footer{text-align:center;padding:20px;font-size:12px;color:var(--label)}
       <div class="chhdr">
         <div style="font-size:14px;font-weight:600;color:var(--text)">Cumulative cash collected — 30 months</div>
         <div class="legend">
-          <div class="li"><div class="ll" style="background:#2D2B55;height:4px"></div>Blended</div>
-          <div class="li"><div class="ld" style="border-color:#7C6FF7"></div>Monthly</div>
-          <div class="li"><div class="ld" style="border-color:#1DB87A"></div>Annual</div>
-          <div class="li"><div class="ld" style="border-color:#F06543"></div>CAC</div>
+          <div class="li"><div class="ll" style="background:#FF6800;height:4px"></div>Blended</div>
+          <div class="li"><div class="ld" style="border-color:#9A9A9A"></div>Monthly</div>
+          <div class="li"><div class="ld" style="border-color:#404040"></div>Annual</div>
+          <div class="li"><div class="ld" style="border-color:#E5484D"></div>CAC</div>
           <div class="li"><div class="ld" style="border-color:#E6A817"></div>ARPPU</div>
         </div>
       </div>
@@ -283,7 +288,7 @@ var ltvChart=null, presentChart=null;
 var activeScenario=1, modalMode='', editingId=null;
 
 var scenarios=[
-  {id:1,name:'Scenario 1',locked:true,params:{roas:0.5,newC:100,ry1:40,ry2:50,surv:[51,35,28,23,20,17,15,13,10],upsellPriceA:100,upsellPriceM:12,upsellPctA:10,upsellPctM:10,priceOn:1,renA:130,renM:20}}
+  {id:1,name:'Scenario 1',locked:true,params:{roas:0.5,newC:100,ry1:40,ry2:50,surv:[51,35,28,23,20,17,15,13,10],upsellPriceA:100,upsellPriceM:12,upsellPctA:10,upsellPctM:10,priceOn:1,renA:226,renM:36}}
 ];
 
 function el(id){return document.getElementById(id);}
@@ -423,16 +428,16 @@ function makeKpiCards(m){
   var never=m.payback===null;
   var arr=m.newC*(MIX_M*(PM+m.uMoM)*12+MIX_A*(PA+m.uYr));
   return[
-    {lbl:'ARPPU',       val:fmt(m.arppu),                              sub:'first payment / cust', acc:'#E6A817'},
-    {lbl:'CAC',         val:fmt(m.cac),                                sub:'ARPPU / ROAS',         acc:'#7C6FF7'},
-    {lbl:'Ad spend/mo', val:'$'+Math.round(m.spend).toLocaleString(),  sub:'CAC x customers',      acc:'#F06543'},
-    {lbl:'LTV 13 mo',   val:fmt(m.bLTV13),                            sub:'yr1 + yr2 renewal',    acc:'#7C6FF7'},
-    {lbl:'LTV 25 mo',   val:fmt(m.bLTV25),                            sub:'yr1+yr2+yr3 renewal',  acc:'#1DB87A'},
-    {lbl:'LTV:CAC 13m', val:(m.bLTV13/m.cac).toFixed(2)+'x',         sub:'based on 13 mo',       acc:'#7C6FF7'},
+    {lbl:'ARPPU',       val:fmt(m.arppu),                              sub:'first payment / cust', acc:'#FF6800'},
+    {lbl:'CAC',         val:fmt(m.cac),                                sub:'ARPPU / ROAS',         acc:'#404040'},
+    {lbl:'Ad spend/mo', val:'$'+Math.round(m.spend).toLocaleString(),  sub:'CAC x customers',      acc:'#FF964A'},
+    {lbl:'LTV 13 mo',   val:fmt(m.bLTV13),                            sub:'yr1 + yr2 renewal',    acc:'#FF6800'},
+    {lbl:'LTV 25 mo',   val:fmt(m.bLTV25),                            sub:'yr1+yr2+yr3 renewal',  acc:'#FF964A'},
+    {lbl:'LTV:CAC 13m', val:(m.bLTV13/m.cac).toFixed(2)+'x',         sub:'based on 13 mo',       acc:'#1DB87A'},
     {lbl:'LTV:CAC 25m', val:(m.bLTV25/m.cac).toFixed(2)+'x',         sub:'based on 25 mo',       acc:'#1DB87A'},
-    {lbl:'Payback',     val:never?'Never':m.payback+' mo',             sub:never?'cash < CAC (60mo)':'cash crosses CAC',acc:never?'#F06543':'#1DB87A'},
-    {lbl:'New ARR/mo',  val:'$'+Math.round(arr).toLocaleString(),     sub:'gross, incl. upsell',  acc:'#F06543'},
-    {lbl:'ROAS target', val:m.roasT+'x',                              sub:'ad spend efficiency',  acc:'#E6A817'}
+    {lbl:'Payback',     val:never?'Never':m.payback+' mo',             sub:never?'cash < CAC (60mo)':'cash crosses CAC',acc:never?'#E5484D':'#1DB87A'},
+    {lbl:'New ARR/mo',  val:'$'+Math.round(arr).toLocaleString(),     sub:'gross, incl. upsell',  acc:'#FF6800'},
+    {lbl:'ROAS target', val:m.roasT+'x',                              sub:'ad spend efficiency',  acc:'#404040'}
   ];
 }
 
@@ -451,10 +456,10 @@ function makeChartData(m,months){
     arppuLine.push(parseFloat(m.arppu.toFixed(2)));
   }
   return{labels:labels,datasets:[
-    {label:'Monthly',data:mL,      borderColor:'#7C6FF7',backgroundColor:'rgba(124,111,247,.05)',borderWidth:1.5,pointRadius:0,tension:0,fill:true,borderDash:[4,3]},
-    {label:'Annual', data:aL,      borderColor:'#1DB87A',backgroundColor:'rgba(29,184,122,.05)', borderWidth:1.5,pointRadius:0,tension:0,fill:true,borderDash:[4,3]},
-    {label:'Blended',data:bL,      borderColor:'#2D2B55',backgroundColor:'rgba(45,43,85,.08)',   borderWidth:3,  pointRadius:0,tension:0,fill:true},
-    {label:'CAC',    data:cacLine, borderColor:'#F06543',borderWidth:1.5,pointRadius:0,borderDash:[5,5],fill:false},
+    {label:'Monthly',data:mL,      borderColor:'#9A9A9A',backgroundColor:'rgba(154,154,154,.05)',borderWidth:1.5,pointRadius:0,tension:0,fill:true,borderDash:[4,3]},
+    {label:'Annual', data:aL,      borderColor:'#404040',backgroundColor:'rgba(64,64,64,.05)',   borderWidth:1.5,pointRadius:0,tension:0,fill:true,borderDash:[4,3]},
+    {label:'Blended',data:bL,      borderColor:'#FF6800',backgroundColor:'rgba(255,104,0,.08)',   borderWidth:3,  pointRadius:0,tension:0,fill:true},
+    {label:'CAC',    data:cacLine, borderColor:'#E5484D',borderWidth:1.5,pointRadius:0,borderDash:[5,5],fill:false},
     {label:'ARPPU',  data:arppuLine,borderColor:'#E6A817',borderWidth:1.5,pointRadius:0,borderDash:[3,3],fill:false}
   ]};
 }
@@ -462,10 +467,10 @@ function makeChartData(m,months){
 var chartOpts={
   responsive:true,maintainAspectRatio:false,
   interaction:{mode:'index',intersect:false},
-  plugins:{legend:{display:false},tooltip:{backgroundColor:'#1A1B2E',titleColor:'rgba(255,255,255,.6)',bodyColor:'#fff',padding:12,cornerRadius:10,callbacks:{label:function(c){return' '+c.dataset.label+': $'+c.parsed.y.toFixed(2);}}}},
+  plugins:{legend:{display:false},tooltip:{backgroundColor:'#1A1A1A',titleColor:'rgba(255,255,255,.6)',bodyColor:'#fff',padding:12,cornerRadius:10,callbacks:{label:function(c){return' '+c.dataset.label+': $'+c.parsed.y.toFixed(2);}}}},
   scales:{
-    x:{ticks:{font:{size:11},color:'#A0A2B0',autoSkip:true,maxTicksLimit:15},grid:{color:'rgba(0,0,0,.04)'},border:{display:false}},
-    y:{ticks:{font:{size:11},color:'#A0A2B0',callback:function(v){return'$'+v;}},grid:{color:'rgba(0,0,0,.04)'},border:{display:false}}
+    x:{ticks:{font:{size:11},color:'#9A9A9A',autoSkip:true,maxTicksLimit:15},grid:{color:'rgba(0,0,0,.04)'},border:{display:false}},
+    y:{ticks:{font:{size:11},color:'#9A9A9A',callback:function(v){return'$'+v;}},grid:{color:'rgba(0,0,0,.04)'},border:{display:false}}
   }
 };
 
@@ -492,14 +497,14 @@ function renderCohort(m){
   for(var i=1;i<=12;i++) h+='<th>Mo '+i+'</th>';
   h+='</tr></thead><tbody>';
   h+='<tr><td>Survival %</td>';
-  for(var i=1;i<=12;i++){var v=s[i];h+='<td style="background:rgba(124,111,247,'+(v/100*0.4).toFixed(2)+');font-weight:600">'+v.toFixed(1)+'%</td>';}
+  for(var i=1;i<=12;i++){var v=s[i];h+='<td style="background:rgba(255,104,0,'+(v/100*0.4).toFixed(2)+');font-weight:600">'+v.toFixed(1)+'%</td>';}
   h+='</tr><tr><td>Cumulative LTV (monthly)</td>';
   var cum=0;
   for(var i=1;i<=12;i++){cum+=(s[i]/100)*(i===1?m.fpMacq:m.pMren);h+='<td>'+fmt(cum)+'</td>';}
   h+='</tr><tr><td>Implied churn</td>';
-  for(var i=1;i<=12;i++){var ch=s[i-1]>0?(s[i-1]-s[i])/s[i-1]:0;h+='<td style="color:'+(ch>0.3?'#F06543':ch>0.12?'#E6A817':'#1DB87A')+';font-weight:600">'+(ch*100).toFixed(1)+'%</td>';}
+  for(var i=1;i<=12;i++){var ch=s[i-1]>0?(s[i-1]-s[i])/s[i-1]:0;h+='<td style="color:'+(ch>0.3?'#E5484D':ch>0.12?'#E6A817':'#1DB87A')+';font-weight:600">'+(ch*100).toFixed(1)+'%</td>';}
   h+='</tr><tr><td>LTV vs monthly CAC</td>';
-  for(var i=1;i<=12;i++){var c2=0;for(var j=1;j<=i;j++)c2+=(s[j]/100)*(j===1?m.fpMacq:m.pMren);var pct=Math.min((c2/m.cacM)*100,100);h+='<td style="color:'+(pct>=100?'#1DB87A':pct>=60?'#E6A817':'#F06543')+';font-weight:600">'+pct.toFixed(0)+'%</td>';}
+  for(var i=1;i<=12;i++){var c2=0;for(var j=1;j<=i;j++)c2+=(s[j]/100)*(j===1?m.fpMacq:m.pMren);var pct=Math.min((c2/m.cacM)*100,100);h+='<td style="color:'+(pct>=100?'#1DB87A':pct>=60?'#E6A817':'#E5484D')+';font-weight:600">'+pct.toFixed(0)+'%</td>';}
   h+='</tr></tbody>';
   el('cohortTable').innerHTML=h;
 }
@@ -550,8 +555,8 @@ function renderPresentation(m){
       '<div class="pprow"><span class="ppk">New customers/mo</span><span class="ppv">'+m.newC+'</span></div>'+
     '</div>'+
     '<div class="ppbox"><div class="pptitle">Plan mix</div>'+
-      '<div class="pprow"><span class="ppk">Annual</span><span class="ppv" style="color:var(--purple)">80%</span></div>'+
-      '<div class="pprow"><span class="ppk">Monthly</span><span class="ppv" style="color:var(--coral)">20%</span></div>'+
+      '<div class="pprow"><span class="ppk">Annual</span><span class="ppv" style="color:var(--orange)">80%</span></div>'+
+      '<div class="pprow"><span class="ppk">Monthly</span><span class="ppv" style="color:var(--grey)">20%</span></div>'+
       '<div class="pprow"><span class="ppk">Annual price (acq)</span><span class="ppv">$113/yr</span></div>'+
       '<div class="pprow"><span class="ppk">Monthly price (acq)</span><span class="ppv">$17.95/mo</span></div>'+
     '</div>'+
